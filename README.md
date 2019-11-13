@@ -1,2 +1,2 @@
 # IRDV
-Information Retrieval and Data Visualisation
+Information Retrieval and Data Visualisation repository.
