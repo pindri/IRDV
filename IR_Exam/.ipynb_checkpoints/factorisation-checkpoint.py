@@ -62,3 +62,20 @@ def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
         predicted_ratings = predict(X, Y)
         print( "Test error: {}".format(error(predicted_ratings, R_test)) )
         print( "Train error: {}".format(error(predicted_ratings, R_train)) )
+        
+        
+def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
+    
+    M = np.shape(X)[0]
+    K = np.shape(X)[1]    
+    
+    # Perform user matrix optimisation.
+    for u in range(1, M):
+        Cu = np.diag(C[u, :])
+        A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
+        b = lin.multi_dot([Y.T, Cu, R[u, :]])
+        X_u = np.linalg.solve(A, b)
+        #X_u = nnls(A, b)[0]
+        
+        X[u,] = X_u
+        

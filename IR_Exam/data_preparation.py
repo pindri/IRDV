@@ -94,3 +94,25 @@ def buildWeightMatrix(R, alpha = 10, w0 = 1):
     C = 1 + alpha * R
 
     return C
+
+
+def updateMatrices(new_user, R, C, X):
+    # Adding new user to R matrix.
+    R = np.vstack((R, new_user))
+    C = buildWeightMatrix(R, alpha = 10)
+    X = np.vstack((X, np.random.rand(np.shape(X)[1])))
+    
+    return R, C, X
+
+
+def updateDataFrame(new_user, R_df, movies_df):    
+    new_df = pd.DataFrame(new_user, columns=["Rating"])
+    new_df["MovieID"] = range(0, len(new_user))
+    new_df["UserID"] = R_df["UserID"].max() + 1
+    new_df = new_df[new_df["Rating"] != 0]
+    new_df = pd.merge(new_df, movies_df, on = "MovieID", how = "inner")
+    new_df = new_df[['MovieID', 'UserID', 'Genres', 'Title', 'Rating']]
+    
+    R_df = R_df.append(new_df, ignore_index = True).sort_values(by = ["MovieID", "UserID"])
+    
+    return R_df

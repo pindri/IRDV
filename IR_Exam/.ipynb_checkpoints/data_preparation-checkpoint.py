@@ -94,3 +94,4 @@ def buildWeightMatrix(R, alpha = 10, w0 = 1):
     C = 1 + alpha * R
 
     return C
+
