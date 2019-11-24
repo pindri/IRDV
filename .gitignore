@@ -1,2 +1,4 @@
-# Ignore material/ folder
+# Ignore some folders folder
 material/
+.ipynb_checkpoints/
+__pycache__/
