@@ -3,6 +3,9 @@
 import time
 
 class codeTimer:
+    """
+    Context manager, measures and prints the execution time of a function.
+    """
     def __init__(self, name=None):
         self.name = "Executed '"  + name + "'. " if name else ""
 

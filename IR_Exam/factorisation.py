@@ -1,3 +1,6 @@
+# Set of functions used to perform and test the Weighted Alternating
+# Least Squares algorithm.
+
 import numpy as np
 import numpy.linalg as lin
 import pandas as pd
@@ -6,6 +9,10 @@ import pandas as pd
 # Define functions to compute approximated ratings and error.
 
 def predict(X, Y):
+    """
+    Computes the dot product between X and Y.T, producing a prediction of
+    the ratings.
+    """
     return np.dot(X, Y.T)
 
 def error(predicted_ratings, R, w0 = 1):
@@ -26,7 +33,8 @@ def error(predicted_ratings, R, w0 = 1):
 def singlePassWALS(R, X, Y, C, reg_lambda):
     """
     A single pass of the Weighted Alternating Least Squares algorithm.
-    As presented, it solves the linear systems of the form Awithout constraints.
+    As presented, it solves the linear systems of the form Ax = b without
+    constraints.
     If desired, `nnls` can be used to compute a non-negative solution.
     """
     M = np.shape(X)[0]
@@ -65,7 +73,15 @@ def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
         
         
 def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
-    
+    """
+    A single pass of the Weighted Alternating Least Squares algorithm
+    for the addition of a new user. Assumes the item-embedding matrix
+    to be already optimised and proceeds to minimise the error on the
+    user-embedding matrix.
+    As presented, it solves the linear systems of the form Ax = b without
+    constraints.
+    If desired, `nnls` can be used to compute a non-negative solution.
+    """
     M = np.shape(X)[0]
     K = np.shape(X)[1]    
     
