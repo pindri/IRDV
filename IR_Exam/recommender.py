@@ -31,11 +31,14 @@ class recommenderSystem():
     
     def predictionError(self):
         predicted_ratings = factorisation.predict(self.X, self.Y)
-        prediction_error = factorisation.error(predicted_ratings, self.R)
-        print("Prediction error: {}".format(prediction_error))
+        prediction_error = factorisation.MAE(predicted_ratings, self.R) 
+        return prediction_error
     
     def performFactorisation(self, reg_lambda, n_iter):
-        factorisation.WALS(self.R, self.R, self.X, self.Y, self.C, reg_lambda, n_iter)
+        train_err, test_err = factorisation.WALS(self.R, self.R, self.X,
+                                                 self.Y, self.C,
+                                                 reg_lambda, n_iter)
+        return train_err, test_err
     
     def answerQueryAux(self, user_id):
         """
@@ -43,8 +46,6 @@ class recommenderSystem():
         unobserved items using the predicted ratings. 
         The average rating for the recommended item is displayed as well.
         """
-        
-        """REWRITE"""
         pred = np.matrix.round(factorisation.predict(self.X, self.Y), 2)[user_id]
 
         # Unseen movies.
@@ -164,3 +165,63 @@ class recommenderSystem():
                                                      self.movies_df)
         factorisation.newUserSinglePassWALS(new_user, self.R, self.C, self.X,
                                             self.Y, reg_lambda)
+        
+        
+    def computeFolds(self, n_folds):
+        """
+        TODO
+        """
+        folds_indices = [i for i in range(n_folds)]
+        p_folds = [1./(n_folds) for _ in range(n_folds)]
+
+        # Mask used to determine the fold of each element.
+        mask = np.random.choice(a = folds_indices, size = self.R.size,
+                                p = p_folds).reshape(self.R.shape)
+
+        # These will hold the k folds.
+        k_folds = [np.zeros(self.R.shape) for _ in range(n_folds)]
+        for i in range(n_folds):
+            k_folds[i][mask == i] = self.R[mask == i]
+
+        return k_folds
+
+        
+    def kFoldCV(self, n_folds, n_iter, reg_lambda):
+        """
+        TODO
+        """
+        
+        k_folds = self.computeFolds(n_folds)
+        k_train_err = []
+        k_test_err = []
+
+        for i in range(n_folds):
+            R_test = k_folds[i]
+            R_train = sum(k_folds) - k_folds[i]
+            train_err, test_err = factorisation.WALS(R_train, R_test, self.X,
+                                                     self.Y, self.C,
+                                                     reg_lambda, n_iter)
+
+            # Appending the last train/test errors from WALS.
+            k_train_err.append(train_err[-1])
+            k_test_err.append(test_err[-1])
+        
+
+        return (sum(k_train_err) / len(k_train_err),
+                sum(k_test_err) / len(k_test_err))
+    
+    
+    def bestLambdaCV(self, n_folds, n_iter, reg_lambda):
+        """
+        NOTE: requires reg_lambda to be a list
+        """
+        print("Performing {} fold CV...".format(n_folds))
+        
+        errors = []
+        for l in reg_lambda:
+            train_err, test_err = self.kFoldCV(n_folds, n_iter, l)
+            errors.append(test_err)
+            
+        print("...Done!")
+        
+        return reg_lambda[np.argmin(errors)]

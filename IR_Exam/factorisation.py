@@ -15,15 +15,16 @@ def predict(X, Y):
     """
     return np.dot(X, Y.T)
 
-def error(predicted_ratings, R, w0 = 1):
+def MAE(predicted_ratings, R, w0 = 1):
     """
-    By default, the weight of the error on the unobserved items is the same as
-    that on the obserbed ones.
+    By default, the weight of the error on the unobserved items null.
     """
     obs_idx = np.where(R > 0)
+    n_obs = np.count_nonzero(R)
     nobs_idx = np.where(R == 0)
-    obs_error = sum( (R[obs_idx] - predicted_ratings[obs_idx]) ** 2 )
-    nobs_error = sum( (R[nobs_idx] - predicted_ratings[nobs_idx]) ** 2 )
+    n_nobs = np.count_nonzero(R == 0)
+    obs_error = sum(abs(R[obs_idx] - predicted_ratings[obs_idx])) / n_obs
+    nobs_error = sum(abs(R[nobs_idx] - predicted_ratings[nobs_idx])) / n_nobs
     return obs_error + w0 * nobs_error
 
 
@@ -64,12 +65,23 @@ def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
     """
     Performs `n_iter` passes of the WALS algorithm, printing test and
     training errors.
+    It returns two lists, one for training and one for test errors.
     """
-    for j in range(1, n_iter + 1):
+    print("Performing WALS algoritm...")
+    
+    train_error = []
+    test_error = []
+    for j in range(n_iter):
         singlePassWALS(R_train, X, Y, C, reg_lambda)
         predicted_ratings = predict(X, Y)
-        print( "Test error: {}".format(error(predicted_ratings, R_test)) )
-        print( "Train error: {}".format(error(predicted_ratings, R_train)) )
+        train_error.append(MAE(predicted_ratings, R_train))
+        test_error.append(MAE(predicted_ratings, R_test))
+        print("Train error: {}".format(train_error[j]))
+        print("Test error: {}".format(test_error[j]))
+    
+    print("...Done!")
+    
+    return train_error, test_error
         
         
 def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
@@ -95,3 +107,5 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
         
         X[u,] = X_u
         
+
+
