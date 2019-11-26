@@ -9,7 +9,7 @@ import pandas as pd
 import numpy as np
 
 
-def importDataset():
+def importDataset(dataset_fraction):
     """
     Imports the ml-latest-small dataset, reading ratings and movies.
     From that, it builds and returns a rating dataframe and a movies
@@ -27,6 +27,7 @@ def importDataset():
     with open(file_path) as f:
         movies = [line for line in csv.reader(f)]
         
+    n_movies = int(dataset_fraction * len(movies))    
 
     # Building dataframes, fixing types, dropping useless columns.
     # The `- 1` fixes indices, making them start at 0.
@@ -40,7 +41,7 @@ def importDataset():
 
 
     movies_df = pd.DataFrame(movies, columns = ['MovieID', 'Title',
-                                                'Genres']).iloc[1:3000]
+                                                'Genres']).iloc[1:n_movies]
     movies_df[['MovieID']] = movies_df[['MovieID']].astype(int) - 1
     
     

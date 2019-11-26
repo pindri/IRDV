@@ -43,7 +43,8 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
     N = np.shape(Y)[0]
     
     for u in range(1, M):
-        Cu = np.diag(C[u, :])
+        print(u)
+        Cu = np.diag(C[u,:])
         A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
         b = lin.multi_dot([Y.T, Cu, R[u, :]])
         X_u = lin.solve(A, b)
@@ -52,13 +53,14 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
         X[u,] = X_u
         
     for i in range(1, N):
+        print(i)
         Ci = np.diag(C[:,i])
         A = lin.multi_dot([X.T, Ci, X]) + reg_lambda * np.eye(K)
         b = lin.multi_dot([X.T, Ci, R[:, i]])
         Y_i = lin.solve(A, b)
         #Y_i = nnls(A, b)[0]
         
-        Y[i,] = Y_i        
+        Y[i,] = Y_i
         
         
 def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
@@ -76,8 +78,8 @@ def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
         predicted_ratings = predict(X, Y)
         train_error.append(MAE(predicted_ratings, R_train))
         test_error.append(MAE(predicted_ratings, R_test))
-        print("Train error: {}".format(train_error[j]))
-        print("Test error: {}".format(test_error[j]))
+        #print("Train error: {}".format(train_error[j]))
+        #print("Test error: {}".format(test_error[j]))
     
     print("...Done!")
     
