@@ -9,11 +9,14 @@ import pandas as pd
 import numpy as np
 
 
-def importDataset(dataset_fraction):
+def importDataset(dataset_fraction = 1.0):
     """
     Imports the ml-latest-small dataset, reading ratings and movies.
     From that, it builds and returns a rating dataframe and a movies
     dataframe.
+    Only a fraction of the dataset can be imported if a number between
+    0 and 1 is passed as an argument. By default, it imports the whole
+    dataset.
     """
     
     __file__ = 'recommender.ipynb'
@@ -103,7 +106,7 @@ def buildR(movies_df, ratings_df):
 
 def buildWeightMatrix(R, alpha = 10, w0 = 1):
     """
-    Builds a weight matrix.
+    Builds the weight matrix.
     """
     # The commented lines suggest a viable alternative.
     

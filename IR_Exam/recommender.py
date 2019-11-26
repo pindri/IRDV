@@ -12,7 +12,7 @@ class recommenderSystem():
     
     
     """
-    TAKE CARE OF TEST AND TRAIN
+    TODO CLASS DOCUMENTATION
     """
     
     def __init__(self, movies_df, ratings_df):
@@ -89,7 +89,9 @@ class recommenderSystem():
     
     def answerQuery(self, user_id):
         """
-        TODO
+        Returns a dataframe of ranked recommendations for user_id.
+        If user_id has rated less than 10 movies, the most popular
+        movies will be returned.
         """
         n_seen = len(np.where(self.R[user_id] != 0)[0])
         

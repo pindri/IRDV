@@ -43,7 +43,6 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
     N = np.shape(Y)[0]
     
     for u in range(1, M):
-        print(u)
         Cu = np.diag(C[u,:])
         A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
         b = lin.multi_dot([Y.T, Cu, R[u, :]])
@@ -53,7 +52,6 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
         X[u,] = X_u
         
     for i in range(1, N):
-        print(i)
         Ci = np.diag(C[:,i])
         A = lin.multi_dot([X.T, Ci, X]) + reg_lambda * np.eye(K)
         b = lin.multi_dot([X.T, Ci, R[:, i]])
@@ -90,8 +88,8 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     """
     A single pass of the Weighted Alternating Least Squares algorithm
     for the addition of a new user. Assumes the item-embedding matrix
-    to be already optimised and proceeds to minimise the error on the
-    user-embedding matrix.
+    to be already optimised and proceeds to minimise the error for the
+    newly added user row.
     As presented, it solves the linear systems of the form Ax = b without
     constraints.
     If desired, `nnls` can be used to compute a non-negative solution.
@@ -99,15 +97,15 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     M = np.shape(X)[0]
     K = np.shape(X)[1]    
     
-    # Perform user matrix optimisation.
-    for u in range(1, M):
-        Cu = np.diag(C[u, :])
-        A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
-        b = lin.multi_dot([Y.T, Cu, R[u, :]])
-        X_u = np.linalg.solve(A, b)
-        #X_u = nnls(A, b)[0]
-        
-        X[u,] = X_u
+    # Perform user optimisation.
+    u = M - 1 # Last user.
+    Cu = np.diag(C[u, :])
+    A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
+    b = lin.multi_dot([Y.T, Cu, R[u, :]])
+    X_u = np.linalg.solve(A, b)
+    #X_u = nnls(A, b)[0]
+
+    X[u,] = X_u
         
 
 
