@@ -8,4 +8,4 @@ TODO:
 - [ ] Complete commenting;
 - [ ] Uniform quotes;
 - [ ] Compute test/training set errors and plot it;
-- [ ] Try with the whole dataset.
+- [ ] Save the predicted matrix on disk, to avoid recomputation.
