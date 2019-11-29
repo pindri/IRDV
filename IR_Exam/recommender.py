@@ -15,10 +15,14 @@ class recommenderSystem():
     TODO CLASS DOCUMENTATION
     """
     
-    def __init__(self, movies_df, ratings_df):
+    def __init__(self, movies_df, ratings_df, ratings_df_test):
         self.movies_df = movies_df
         self.ratings_df = ratings_df
+        self.ratings_df_test = ratings_df_test
         self.R_df, self.R = data_preparation.buildR(movies_df, ratings_df)
+        self.R_df_test, self.R_test = data_preparation.buildR(movies_df, 
+                                                              ratings_df_test,
+                                                              is_test = True)
         
         self.C = data_preparation.buildWeightMatrix(self.R)
         
@@ -95,7 +99,7 @@ class recommenderSystem():
         """
         n_seen = len(np.where(self.R[user_id] != 0)[0])
         
-        if n_seen > 10:
+        if n_seen >= 10:
             recom_df = self.answerQueryAux(user_id)
         else:
             print("Too few movies! Most poular movies will be suggested.")
@@ -194,8 +198,11 @@ class recommenderSystem():
         """
         
         k_folds = self.computeFolds(n_folds)
-        k_train_err = []
-        k_test_err = []
+        # Initialising training and test errors across iterations.
+        k_train_err = [0 for _ in range(n_iter)]
+        k_test_err = [0 for _ in range(n_iter)]
+        
+        print("len init" + str(len(k_train_err)))
 
         for i in range(n_folds):
             R_test = k_folds[i]
@@ -204,13 +211,15 @@ class recommenderSystem():
                                                      self.Y, self.C,
                                                      reg_lambda, n_iter)
 
-            # Appending the last train/test errors from WALS.
-            k_train_err.append(train_err[-1])
-            k_test_err.append(test_err[-1])
-        
-
-        return (sum(k_train_err) / len(k_train_err),
-                sum(k_test_err) / len(k_test_err))
+            # Updating cumulative train/test errors from WALS.
+            k_train_err = [sum(x) for x in zip(k_train_err, train_err)]
+            k_test_err = [sum(x) for x in zip(k_test_err, test_err)]
+            print("len ins" + str(len(k_train_err)))
+            
+            
+        # Returning average error across folds.
+        return ([x / n_folds for x in k_train_err],
+                [x / n_folds for x in k_test_err])
     
     
     def bestLambdaCV(self, n_folds, n_iter, reg_lambda):
@@ -219,11 +228,70 @@ class recommenderSystem():
         """
         print("Performing {} fold CV...".format(n_folds))
         
-        errors = []
+        lambda_errors = []
+        error_history = []
         for l in reg_lambda:
             train_err, test_err = self.kFoldCV(n_folds, n_iter, l)
-            errors.append(test_err)
+            # Appending the last iteration kfold error.
+            lambda_errors.append(test_err[-1])
+            # Updating error history.
+            error_history.append([train_err, test_err])
             
         print("...Done!")
         
-        return reg_lambda[np.argmin(errors)]
+        return reg_lambda[np.argmin(lambda_errors)], error_history
+    
+    
+    # Error measures.
+    
+    def precision(self, user_id, n_recom):
+        recom = self.answerQuery(user_id).head(n_recom)
+        actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
+        # Number of relevant reccomendations.
+        prec = len(pd.merge(recom, 
+                            actual, on = "MovieID")) / n_recom
+        return prec
+
+    
+    def meanPrecision(self, n_recom):
+        prec = 0.0
+        n_users = self.R_df["UserID"].nunique()
+        for u in range(n_users):
+            prec += self.precision(u, n_recom)
+        return prec / n_users
+    
+    
+    def recall(self, user_id, n_recom):
+        recom = self.answerQuery(user_id).head(n_recom)
+        actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
+        # Number of relevant reccomendations.
+        recall = len(pd.merge(recom, 
+                             actual, on = "MovieID")) / len(actual)
+        return recall
+        
+        
+    def meanRecall(self, n_recom):
+        recall = 0.0
+        n_users = self.R_df["UserID"].nunique()
+        for u in range(n_users):
+            recall += self.recall(u, n_recom)
+        return recall / n_users
+    
+    def AP(self, user_id, n_recom):
+        ap = 0
+        for i in range(n_recom):
+            prec = self.precision(user_id, i)
+            rec_i = 8
+            if prec > 0:
+                ap += prec * 1./i
+        return 0
+                
+    
+    def MAP(self, n_recom):
+        ap = 0
+        n_users = self.R_df["UserID"].nunique()
+        for u in range(n_users):
+            ap += self.AP
+            
+        # MAP
+        return ap / n_users

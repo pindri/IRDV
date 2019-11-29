@@ -1,7 +1,7 @@
 # Define context manager to measure execution time.
 
 import time
-import pickle
+import numpy as np
 
 class codeTimer:
     """
@@ -21,16 +21,15 @@ class codeTimer:
         
 def saveRecSys(rec, filename):
     """
-    Saves a recommender system to file.
+    Saves the user and item matrices of a recommender system to file.
     """
-    with open(filename, 'wb') as output:
-        pickle.dump(rec, output, pickle.HIGHEST_PROTOCOL)
+    np.savez(filename, X = rec.X, Y = rec.Y)
         
         
-def loadRecSys(filename):
+def loadRecSys(rec, filename):
     """
-    Loads a recommender system from file.
+    Loads the user and item matrices of a recommender system from file.
     """
-    with open(filename, 'rb') as input:
-        rec = pickle.load(input)
-    return rec
+    data = np.load(filename)
+    rec.X = data['X']
+    rec.Y = data['Y']

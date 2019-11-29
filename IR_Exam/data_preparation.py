@@ -17,6 +17,8 @@ def importDataset(dataset_fraction = 1.0):
     Only a fraction of the dataset can be imported if a number between
     0 and 1 is passed as an argument. By default, it imports the whole
     dataset.
+    
+    WRITE ABOUT TEST
     """
     
     __file__ = 'recommender.ipynb'
@@ -40,7 +42,6 @@ def importDataset(dataset_fraction = 1.0):
     ratings_df[['UserID', 'MovieID']] = ratings_df[['UserID',
                                                     'MovieID']].astype(int) - 1
     ratings_df[['Rating']] = ratings_df[['Rating']].astype(float)
-    ratings_df.drop(['Timestamp'], inplace = True, axis = 1)
 
 
     movies_df = pd.DataFrame(movies, columns = ['MovieID', 'Title',
@@ -48,8 +49,7 @@ def importDataset(dataset_fraction = 1.0):
     movies_df[['MovieID']] = movies_df[['MovieID']].astype(int) - 1
     
     
-    # Movie index correction.
-    # In the _ml-latest-small_ dataset `MovieId`s do not increase continuously. 
+    # Movie index corre-small_ dataset `MovieId`s do not increase continuously. 
     # Even if less than 10000 movies are present, the index goes up to ~19000. 
     # In order to fix this unconvenience and make the dataframe indexing more
     # intuitive, a more appropriate index has been built.
@@ -69,12 +69,29 @@ def importDataset(dataset_fraction = 1.0):
     # Fix the MovieIDs of the ratings_df dataframe.
     ratings_df = pd.merge(movie_index, ratings_df, on = 'MovieID',
                           how = 'inner').drop(['MovieID'], axis = 1)
-    ratings_df.columns = ['MovieID', 'UserID', 'Rating']
+    ratings_df.columns = ['MovieID', 'UserID', 'Rating', 'Timestamp']
     
-    return movies_df, ratings_df
+    # Extracting test ratings.
+    ratings_df.sort_values(by = ["UserID", "Timestamp"])
+    
+    ratings_df_test = pd.DataFrame(columns = ratings_df.columns)
+    
+    for i in range(ratings_df["UserID"].nunique()):
+        # Test set is 20% of observations.
+        n_test = int(0.2 * len(ratings_df[ratings_df["UserID"] == i]))
+        ratings_df_test = ratings_df_test.append( ratings_df[ratings_df["UserID"] == i].tail(n_test),
+                                                ignore_index = True)
+        ratings_df.drop(ratings_df[ratings_df["UserID"] == i].tail(n_test).index,
+                       inplace = True)
+    
+    # Delete now useless timestamp.
+    ratings_df.drop(['Timestamp'], inplace = True, axis = 1)
+    ratings_df_test.drop(['Timestamp'], inplace = True, axis = 1)
+    
+    return movies_df, ratings_df, ratings_df_test
 
 
-def buildR(movies_df, ratings_df):
+def buildR(movies_df, ratings_df, is_test = False):
     """
     Builds the sparse rating dataframe and matrix starting from the
     movies/rating dataframes.
@@ -98,21 +115,22 @@ def buildR(movies_df, ratings_df):
     R = coo_matrix((R_ratings, (R_users, R_movies)))
     R = R.toarray()
 
-    print("The dataframe contains {} users and {} items."
-          .format(np.shape(R)[0], np.shape(R)[1]))
+    if is_test == False:
+        print("The dataframe contains {} users and {} items."
+              .format(np.shape(R)[0], np.shape(R)[1]))
     
     return R_df, R
 
 
-def buildWeightMatrix(R, alpha = 10, w0 = 1):
+def buildWeightMatrix(R, alpha = 10, w0 = 0.1):
     """
     Builds the weight matrix.
     """
     # The commented lines suggest a viable alternative.
     
-    #c = [np.count_nonzero(R[:, i]) for i in range(0, np.shape(R)[1])]
-    #C = R * c + w0
-    C = 1 + alpha * R
+    c = [np.count_nonzero(R[:, i]) for i in range(0, np.shape(R)[1])]
+    C = R * c + w0
+    #C = 1 + alpha * R
 
     return C
 
