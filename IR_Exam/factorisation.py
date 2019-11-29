@@ -17,7 +17,7 @@ def predict(X, Y):
 
 def MAE(predicted_ratings, R, w0 = 1):
     """
-    By default, the weight of the error on the unobserved items null.
+    By default, the weight of the error on the unobserved items is one.
     """
     obs_idx = np.where(R > 0)
     n_obs = np.count_nonzero(R)
@@ -97,7 +97,7 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     M = np.shape(X)[0]
     K = np.shape(X)[1]    
     
-    # Perform user optimisation.
+    # Perform useFr optimisation.
     u = M - 1 # Last user.
     Cu = np.diag(C[u, :])
     A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)

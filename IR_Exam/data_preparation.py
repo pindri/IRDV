@@ -18,7 +18,8 @@ def importDataset(dataset_fraction = 1.0):
     0 and 1 is passed as an argument. By default, it imports the whole
     dataset.
     
-    WRITE ABOUT TEST
+    Training and test set are divided using 80/20 proportions. For each
+    user, the most recent 20% ratings constitute the test set.
     """
     
     __file__ = 'recommender.ipynb'
@@ -71,7 +72,8 @@ def importDataset(dataset_fraction = 1.0):
                           how = 'inner').drop(['MovieID'], axis = 1)
     ratings_df.columns = ['MovieID', 'UserID', 'Rating', 'Timestamp']
     
-    # Extracting test ratings.
+    
+    # Extracting test ratings (20% most recent ratings for each user).
     ratings_df.sort_values(by = ["UserID", "Timestamp"])
     
     ratings_df_test = pd.DataFrame(columns = ratings_df.columns)
@@ -79,12 +81,15 @@ def importDataset(dataset_fraction = 1.0):
     for i in range(ratings_df["UserID"].nunique()):
         # Test set is 20% of observations.
         n_test = int(0.2 * len(ratings_df[ratings_df["UserID"] == i]))
-        ratings_df_test = ratings_df_test.append( ratings_df[ratings_df["UserID"] == i].tail(n_test),
+        ratings_df_test = ratings_df_test.append(ratings_df[ratings_df
+                                                            ["UserID"] ==
+                                                            i].tail(n_test),
                                                 ignore_index = True)
-        ratings_df.drop(ratings_df[ratings_df["UserID"] == i].tail(n_test).index,
-                       inplace = True)
+        ratings_df.drop(ratings_df[ratings_df["UserID"] == i]
+                        .tail(n_test).index,
+                        inplace = True)
     
-    # Delete now useless timestamp.
+    # Delete now useless timestamp columns.
     ratings_df.drop(['Timestamp'], inplace = True, axis = 1)
     ratings_df_test.drop(['Timestamp'], inplace = True, axis = 1)
     

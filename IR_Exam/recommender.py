@@ -12,7 +12,21 @@ class recommenderSystem():
     
     
     """
-    TODO CLASS DOCUMENTATION
+    Implements a recommender system. It is constructed from a movies
+    dataframe and ratings dataframes (for both training and test).
+    
+    It includes methods to perform WALS factorisation and provide
+    recommendations.
+    
+    It includes methods to compute the k-fold CV error and
+    precision/recall/AP. Theese can be used to assess the recommander
+    system performance.
+    
+    For each item, using cosine similarity, similar items can be
+    recommended.
+    
+    Additionally, the class can randomly generate new users and provide
+    recommendations for them.
     """
     
     def __init__(self, movies_df, ratings_df, ratings_df_test):
@@ -34,11 +48,17 @@ class recommenderSystem():
         return self.R_df[self.R_df['UserID'] == user_id]
     
     def predictionError(self):
+        """
+        Computes the MAE for the current values of X and Y.
+        """
         predicted_ratings = factorisation.predict(self.X, self.Y)
         prediction_error = factorisation.MAE(predicted_ratings, self.R) 
         return prediction_error
     
     def performFactorisation(self, reg_lambda, n_iter):
+        """
+        Performs n_iter iterations of the WALS algorithm.
+        """
         train_err, test_err = factorisation.WALS(self.R, self.R, self.X,
                                                  self.Y, self.C,
                                                  reg_lambda, n_iter)
@@ -112,7 +132,7 @@ class recommenderSystem():
 
     def cosineSimilarity(self, d_1, d_2):
         """
-        TODO
+        Computes the cosine similarity between two arrays.
         """
         len_1 = lin.norm(d_1)
         len_2 = lin.norm(d_2)
@@ -122,7 +142,8 @@ class recommenderSystem():
 
     def similarItems(self, movie_id):
         """
-        TODO
+        Computes the similarity beween the current item (movie_id) and
+        all other items.
         """
         # Y is the item embedding
         d_1 = self.Y[movie_id]
@@ -132,7 +153,7 @@ class recommenderSystem():
     
     def suggestSimilar(self, movie_id):
         """
-        TODO
+        Given a movie_id, it retuns a ranked dataframe of similar items.
         """
         similarities = pd.DataFrame(self.similarItems(movie_id),
                                     columns = ["Similarity"])
@@ -145,7 +166,8 @@ class recommenderSystem():
 
     def generateNewUser(self, n_movies):
         """
-        TODO
+        Randomly generates a new user who has rated n_movies.
+        It returns the user array and a new_user_id.
         """
         new_user = []
         dim = np.shape(self.R)[1]
@@ -163,7 +185,13 @@ class recommenderSystem():
     
     def addNewUser(self, new_user, reg_lambda):
         """
-        TODO
+        Adds the new_user updating the ratings and users matrices.
+        It does not recompute the item matrix, which is assumed not to
+        significantly change when a few users are added
+        
+        It performs a single-step WALS for the new user. If many users
+        are added, a complete WALS step should be performed to update
+        the item matrix as well.
         """
         self.R, self.C, self.X = data_preparation.updateMatrices(new_user, self.R, 
                                                                  self.C, self.X)
@@ -175,7 +203,9 @@ class recommenderSystem():
         
     def computeFolds(self, n_folds):
         """
-        TODO
+        Subdivides the R matrix in n_folds folds.
+        It uses a mask to randomly choose (user, item) pairs.
+        It returns an array containing the folds.
         """
         folds_indices = [i for i in range(n_folds)]
         p_folds = [1./(n_folds) for _ in range(n_folds)]
@@ -194,7 +224,9 @@ class recommenderSystem():
         
     def kFoldCV(self, n_folds, n_iter, reg_lambda):
         """
-        TODO
+        Computes the k-fold CV error using n_folds, reg_lambda 
+        regression coefficient and n_iter iterations of the WALS
+        algorithm.
         """
         
         k_folds = self.computeFolds(n_folds)
@@ -202,8 +234,6 @@ class recommenderSystem():
         k_train_err = [0 for _ in range(n_iter)]
         k_test_err = [0 for _ in range(n_iter)]
         
-        print("len init" + str(len(k_train_err)))
-
         for i in range(n_folds):
             R_test = k_folds[i]
             R_train = sum(k_folds) - k_folds[i]
@@ -214,7 +244,6 @@ class recommenderSystem():
             # Updating cumulative train/test errors from WALS.
             k_train_err = [sum(x) for x in zip(k_train_err, train_err)]
             k_test_err = [sum(x) for x in zip(k_test_err, test_err)]
-            print("len ins" + str(len(k_train_err)))
             
             
         # Returning average error across folds.
@@ -224,6 +253,11 @@ class recommenderSystem():
     
     def bestLambdaCV(self, n_folds, n_iter, reg_lambda):
         """
+        Computes the k-fold CV error (using n_folds folds and n_iter
+        iterations of the WALS algorithm) for each of the reg_lambda
+        values. Return the regression coefficient associated with
+        the smallest CV error.
+        
         NOTE: requires reg_lambda to be a list
         """
         print("Performing {} fold CV...".format(n_folds))
@@ -245,15 +279,23 @@ class recommenderSystem():
     # Error measures.
     
     def precision(self, user_id, n_recom):
+        """
+        Computes the number of relevant recommendations for user_id
+        when n_recom recommendations are suggested.
+        """
         recom = self.answerQuery(user_id).head(n_recom)
         actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
-        # Number of relevant reccomendations.
+        # Number of relevant recommendations.
         prec = len(pd.merge(recom, 
                             actual, on = "MovieID")) / n_recom
         return prec
 
     
     def meanPrecision(self, n_recom):
+        """
+        Computes the mean precision across all users when n_recom
+        recommendations are suggested.
+        """
         prec = 0.0
         n_users = self.R_df["UserID"].nunique()
         for u in range(n_users):
@@ -262,6 +304,10 @@ class recommenderSystem():
     
     
     def recall(self, user_id, n_recom):
+        """
+        Computes the recall for user_id when n_recom recommendations
+        are suggested.
+        """
         recom = self.answerQuery(user_id).head(n_recom)
         actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
         # Number of relevant reccomendations.
@@ -271,12 +317,17 @@ class recommenderSystem():
         
         
     def meanRecall(self, n_recom):
+        """
+        Computes the mean recall across all users when n_recom
+        recommendations are suggested.
+        """
         recall = 0.0
         n_users = self.R_df["UserID"].nunique()
         for u in range(n_users):
             recall += self.recall(u, n_recom)
         return recall / n_users
     
+    #TODO THESE MEASURES
     def AP(self, user_id, n_recom):
         ap = 0
         for i in range(n_recom):
