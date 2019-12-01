@@ -44,25 +44,33 @@ class recommenderSystem():
         self.X = np.random.rand(np.shape(self.R)[0], self.K)
         self.Y = np.random.rand(np.shape(self.R)[1], self.K)
         
+        
     def getUserMovies(self, user_id):
+        
         return self.R_df[self.R_df['UserID'] == user_id]
+    
     
     def predictionError(self):
         """
         Computes the MAE for the current values of X and Y.
         """
+        
         predicted_ratings = factorisation.predict(self.X, self.Y)
         prediction_error = factorisation.MAE(predicted_ratings, self.R) 
+        
         return prediction_error
+    
     
     def performFactorisation(self, reg_lambda, n_iter):
         """
         Performs n_iter iterations of the WALS algorithm.
         """
+        
         train_err, test_err = factorisation.WALS(self.R, self.R, self.X,
                                                  self.Y, self.C,
                                                  reg_lambda, n_iter)
         return train_err, test_err
+    
     
     def answerQueryAux(self, user_id):
         """
@@ -70,6 +78,7 @@ class recommenderSystem():
         unobserved items using the predicted ratings. 
         The average rating for the recommended item is displayed as well.
         """
+        
         pred = np.matrix.round(factorisation.predict(self.X, self.Y), 2)[user_id]
 
         # Unseen movies.
@@ -92,10 +101,12 @@ class recommenderSystem():
 
         return recom_df.sort_values(by = "Prediction", ascending = False)
     
+    
     def mostPopular(self):
         """
         Produces a dataframe containing the ranked most popular items.
         """
+        
         # movie title genre avg rating
         movie_count_df = (self.ratings_df.groupby("MovieID").size()
                           .reset_index(name = "Counts"))
@@ -111,12 +122,14 @@ class recommenderSystem():
         
         return recom_df.sort_values(by = "Counts", ascending = False)
     
+    
     def answerQuery(self, user_id):
         """
         Returns a dataframe of ranked recommendations for user_id.
         If user_id has rated less than 10 movies, the most popular
         movies will be returned.
         """
+        
         n_seen = len(np.where(self.R[user_id] != 0)[0])
         
         if n_seen >= 10:
@@ -128,47 +141,60 @@ class recommenderSystem():
         return recom_df
     
     
-    # Suggesting similar items.
-
+    #===============================#
+    #== Suggesting similar items. ==#
+    #===============================#
+    
     def cosineSimilarity(self, d_1, d_2):
         """
         Computes the cosine similarity between two arrays.
         """
+        
         len_1 = lin.norm(d_1)
         len_2 = lin.norm(d_2)
         if len_1 == 0 or len_2 == 0:
             return -1
+        
         return np.dot(d_1, d_2) / (len_1 * len_2)
 
+    
     def similarItems(self, movie_id):
         """
         Computes the similarity beween the current item (movie_id) and
         all other items.
         """
+        
         # Y is the item embedding
         d_1 = self.Y[movie_id]
         similarity = [self.cosineSimilarity(self.Y[movie_id], self.Y[i]) 
                       for i in range(0, np.shape(self.Y)[0])]
+        
         return similarity
+    
     
     def suggestSimilar(self, movie_id):
         """
         Given a movie_id, it retuns a ranked dataframe of similar items.
         """
+        
         similarities = pd.DataFrame(self.similarItems(movie_id),
                                     columns = ["Similarity"])
         similarities_df = pd.concat([self.movies_df, similarities], axis = 1)
+        
         return similarities_df.sort_values(by = 'Similarity',
                                            ascending = False).head(10)
-    
-    
-    # Recommendations for new users. 
+   
+
+    #===============================#
+    #== New users recommendations ==#
+    #===============================#
 
     def generateNewUser(self, n_movies):
         """
         Randomly generates a new user who has rated n_movies.
         It returns the user array and a new_user_id.
         """
+        
         new_user = []
         dim = np.shape(self.R)[1]
 
@@ -183,6 +209,7 @@ class recommenderSystem():
 
         return new_user, new_user_id
     
+    
     def addNewUser(self, new_user, reg_lambda):
         """
         Adds the new_user updating the ratings and users matrices.
@@ -193,6 +220,7 @@ class recommenderSystem():
         are added, a complete WALS step should be performed to update
         the item matrix as well.
         """
+        
         self.R, self.C, self.X = data_preparation.updateMatrices(new_user, self.R, 
                                                                  self.C, self.X)
         self.R_df = data_preparation.updateDataFrame(new_user, self.R_df,
@@ -207,6 +235,7 @@ class recommenderSystem():
         It uses a mask to randomly choose (user, item) pairs.
         It returns an array containing the folds.
         """
+
         folds_indices = [i for i in range(n_folds)]
         p_folds = [1./(n_folds) for _ in range(n_folds)]
 
@@ -221,6 +250,10 @@ class recommenderSystem():
 
         return k_folds
 
+    
+    #=======================#
+    #== Cross validation. ==#
+    #=======================#
         
     def kFoldCV(self, n_folds, n_iter, reg_lambda):
         """
@@ -260,6 +293,7 @@ class recommenderSystem():
         
         NOTE: requires reg_lambda to be a list
         """
+        
         print("Performing {} fold CV...".format(n_folds))
         
         lambda_errors = []
@@ -276,18 +310,22 @@ class recommenderSystem():
         return reg_lambda[np.argmin(lambda_errors)], error_history
     
     
-    # Error measures.
-    
+    #=====================#
+    #== Error measures. ==#
+    #=====================#
+        
     def precision(self, user_id, n_recom):
         """
         Computes the number of relevant recommendations for user_id
         when n_recom recommendations are suggested.
         """
+        
         recom = self.answerQuery(user_id).head(n_recom)
         actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
         # Number of relevant recommendations.
         prec = len(pd.merge(recom, 
                             actual, on = "MovieID")) / n_recom
+        
         return prec
 
     
@@ -296,10 +334,12 @@ class recommenderSystem():
         Computes the mean precision across all users when n_recom
         recommendations are suggested.
         """
+        
         prec = 0.0
         n_users = self.R_df["UserID"].nunique()
         for u in range(n_users):
             prec += self.precision(u, n_recom)
+        
         return prec / n_users
     
     
@@ -308,11 +348,13 @@ class recommenderSystem():
         Computes the recall for user_id when n_recom recommendations
         are suggested.
         """
+        
         recom = self.answerQuery(user_id).head(n_recom)
         actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
         # Number of relevant reccomendations.
         recall = len(pd.merge(recom, 
                              actual, on = "MovieID")) / len(actual)
+        
         return recall
         
         
@@ -321,11 +363,14 @@ class recommenderSystem():
         Computes the mean recall across all users when n_recom
         recommendations are suggested.
         """
+        
         recall = 0.0
         n_users = self.R_df["UserID"].nunique()
         for u in range(n_users):
             recall += self.recall(u, n_recom)
+        
         return recall / n_users
+    
     
     #TODO THESE MEASURES
     def AP(self, user_id, n_recom):

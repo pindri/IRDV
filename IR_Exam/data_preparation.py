@@ -18,8 +18,8 @@ def importDataset(dataset_fraction = 1.0):
     0 and 1 is passed as an argument. By default, it imports the whole
     dataset.
     
-    Training and test set are divided using 80/20 proportions. For each
-    user, the most recent 20% ratings constitute the test set.
+    Training and test sets are divided as follows: for each
+    user, the most recent 10 ratings constitute the test set.
     """
     
     __file__ = 'recommender.ipynb'
@@ -73,14 +73,15 @@ def importDataset(dataset_fraction = 1.0):
     ratings_df.columns = ['MovieID', 'UserID', 'Rating', 'Timestamp']
     
     
-    # Extracting test ratings (20% most recent ratings for each user).
+    # Extracting test ratings (10 most recent ratings for each user).
     ratings_df.sort_values(by = ["UserID", "Timestamp"])
     
     ratings_df_test = pd.DataFrame(columns = ratings_df.columns)
     
     for i in range(ratings_df["UserID"].nunique()):
-        # Test set is 20% of observations.
-        n_test = int(0.2 * len(ratings_df[ratings_df["UserID"] == i]))
+        # Test set is 10 of observations.
+        #n_test = int(0.2 * len(ratings_df[ratings_df["UserID"] == i]))
+        n_test = 10
         ratings_df_test = ratings_df_test.append(ratings_df[ratings_df
                                                             ["UserID"] ==
                                                             i].tail(n_test),

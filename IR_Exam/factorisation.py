@@ -15,6 +15,7 @@ def predict(X, Y):
     """
     return np.dot(X, Y.T)
 
+
 def MAE(predicted_ratings, R, w0 = 1):
     """
     By default, the weight of the error on the unobserved items is one.
@@ -25,8 +26,8 @@ def MAE(predicted_ratings, R, w0 = 1):
     n_nobs = np.count_nonzero(R == 0)
     obs_error = sum(abs(R[obs_idx] - predicted_ratings[obs_idx])) / n_obs
     nobs_error = sum(abs(R[nobs_idx] - predicted_ratings[nobs_idx])) / n_nobs
-    return obs_error + w0 * nobs_error
 
+    return obs_error + w0 * nobs_error
 
 
 #import scipy.optimize.nnls as nnls
@@ -97,7 +98,7 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     M = np.shape(X)[0]
     K = np.shape(X)[1]    
     
-    # Perform useFr optimisation.
+    # Perform new_user optimisation.
     u = M - 1 # Last user.
     Cu = np.diag(C[u, :])
     A = lin.multi_dot([Y.T, Cu, Y]) + reg_lambda * np.eye(K)
@@ -106,6 +107,3 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     #X_u = nnls(A, b)[0]
 
     X[u,] = X_u
-        
-
-
