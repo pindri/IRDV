@@ -1,10 +1,4 @@
-# IRDV
-Information Retrieval and Data Visualisation repository.
+# Information Retrieval final project
+This repository contains the implementation of a recommender system. Performing collaborative filtering using matrix factorisation, the system provides movies recommendations using the MovieLens [ml-latest-small](https://grouplens.org/datasets/movielens/) dataset.
 
-TODO:
-- [x] Reorganise code;
-- [x] Cold start problem;
-- [x] Complete commenting;
-- [ ] Uniform quotes;
-- [x] Compute test/training set errors and plot it;
-- [x] Save the predicted matrix on disk, to avoid recomputation.
+
