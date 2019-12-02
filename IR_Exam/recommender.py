@@ -79,7 +79,8 @@ class recommenderSystem():
         The average rating for the recommended item is displayed as well.
         """
         
-        pred = np.matrix.round(factorisation.predict(self.X, self.Y), 2)[user_id]
+        pred = np.matrix.round(factorisation.predict(self.X,
+                                                     self.Y), 2)[user_id]
 
         # Unseen movies.
         idx = np.where(self.R[user_id] == 0)[0]
@@ -108,19 +109,19 @@ class recommenderSystem():
         """
         
         # movie title genre avg rating
-        movie_count_df = (self.ratings_df.groupby("MovieID").size()
-                          .reset_index(name = "Counts"))
-        avg_rat = self.ratings_df.groupby("MovieID").mean()
+        movie_count_df = (self.ratings_df.groupby('MovieID').size()
+                          .reset_index(name = 'Counts'))
+        avg_rat = self.ratings_df.groupby('MovieID').mean()
         
         dfs = [self.movies_df, avg_rat, movie_count_df]
         
         recom_df = reduce(lambda left, right: 
-                          pd.merge(left, right, on = "MovieID"), dfs)
+                          pd.merge(left, right, on = 'MovieID'), dfs)
         
-        recom_df.drop(["UserID"], inplace = True, axis = 1)
+        recom_df.drop(['UserID'], inplace = True, axis = 1)
         recom_df.rename(columns = {'Rating':'AVG_Rating'}, inplace = True)
         
-        return recom_df.sort_values(by = "Counts", ascending = False)
+        return recom_df.sort_values(by = 'Counts', ascending = False)
     
     
     def answerQuery(self, user_id):
@@ -178,7 +179,7 @@ class recommenderSystem():
         """
         
         similarities = pd.DataFrame(self.similarItems(movie_id),
-                                    columns = ["Similarity"])
+                                    columns = ['Similarity'])
         similarities_df = pd.concat([self.movies_df, similarities], axis = 1)
         
         return similarities_df.sort_values(by = 'Similarity',
@@ -221,8 +222,10 @@ class recommenderSystem():
         the item matrix as well.
         """
         
-        self.R, self.C, self.X = data_preparation.updateMatrices(new_user, self.R, 
-                                                                 self.C, self.X)
+        self.R, self.C, self.X = data_preparation.updateMatrices(new_user,
+                                                                 self.R, 
+                                                                 self.C,
+                                                                 self.X)
         self.R_df = data_preparation.updateDataFrame(new_user, self.R_df,
                                                      self.movies_df)
         factorisation.newUserSinglePassWALS(new_user, self.R, self.C, self.X,
@@ -321,10 +324,10 @@ class recommenderSystem():
         """
         
         recom = self.answerQuery(user_id).head(n_recom)
-        actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
+        actual = self.R_df_test[self.R_df_test['UserID'] == user_id]
         # Number of relevant recommendations.
         prec = len(pd.merge(recom, 
-                            actual, on = "MovieID")) / n_recom
+                            actual, on = 'MovieID')) / n_recom
         
         return prec
 
@@ -336,7 +339,7 @@ class recommenderSystem():
         """
         
         prec = 0.0
-        n_users = self.R_df["UserID"].nunique()
+        n_users = self.R_df['UserID'].nunique()
         for u in range(n_users):
             prec += self.precision(u, n_recom)
         
@@ -350,10 +353,10 @@ class recommenderSystem():
         """
         
         recom = self.answerQuery(user_id).head(n_recom)
-        actual = self.R_df_test[self.R_df_test["UserID"] == user_id]
+        actual = self.R_df_test[self.R_df_test['UserID'] == user_id]
         # Number of relevant reccomendations.
         recall = len(pd.merge(recom, 
-                             actual, on = "MovieID")) / len(actual)
+                             actual, on = 'MovieID')) / len(actual)
         
         return recall
         
@@ -365,29 +368,8 @@ class recommenderSystem():
         """
         
         recall = 0.0
-        n_users = self.R_df["UserID"].nunique()
+        n_users = self.R_df['UserID'].nunique()
         for u in range(n_users):
             recall += self.recall(u, n_recom)
         
         return recall / n_users
-    
-    
-    #TODO THESE MEASURES
-    def AP(self, user_id, n_recom):
-        ap = 0
-        for i in range(n_recom):
-            prec = self.precision(user_id, i)
-            rec_i = 8
-            if prec > 0:
-                ap += prec * 1./i
-        return 0
-                
-    
-    def MAP(self, n_recom):
-        ap = 0
-        n_users = self.R_df["UserID"].nunique()
-        for u in range(n_users):
-            ap += self.AP
-            
-        # MAP
-        return ap / n_users

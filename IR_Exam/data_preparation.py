@@ -41,21 +41,22 @@ def importDataset(dataset_fraction = 1.0):
     ratings_df = pd.DataFrame(ratings,columns = ['UserID', 'MovieID','Rating',
                                                  'Timestamp']).iloc[1:]
     ratings_df[['UserID', 'MovieID']] = ratings_df[['UserID',
-                                                    'MovieID']].astype(int) - 1
+                                                    'MovieID']].astype(int)-1
     ratings_df[['Rating']] = ratings_df[['Rating']].astype(float)
 
 
     movies_df = pd.DataFrame(movies, columns = ['MovieID', 'Title',
                                                 'Genres']).iloc[1:n_movies]
-    movies_df[['MovieID']] = movies_df[['MovieID']].astype(int) - 1
+    movies_df[['MovieID']] = movies_df[['MovieID']].astype(int)-1
     
     
-    # Movie index corre-small_ dataset `MovieId`s do not increase continuously. 
-    # Even if less than 10000 movies are present, the index goes up to ~19000. 
-    # In order to fix this unconvenience and make the dataframe indexing more
-    # intuitive, a more appropriate index has been built.
-    # If necessary, a reverse conversion to the original one could be achieved
-    # by storing a two column conversion dataframe.
+    # Movie index corre-small_ dataset `MovieId`s do not increase
+    # continuously. Even if less than 10000 movies are present,
+    # the index goes up to ~19000. In order to fix this unconvenience
+    # and make the dataframe indexing more intuitive,
+    # a more appropriate index has been built.
+    # If necessary, a reverse conversion to the original one
+    # could be achieved by storing a two column conversion dataframe.
     
     n_movies = movies_df['MovieID'].shape[0]
     movie_index = pd.DataFrame([i for i in 
@@ -74,19 +75,19 @@ def importDataset(dataset_fraction = 1.0):
     
     
     # Extracting test ratings (10 most recent ratings for each user).
-    ratings_df.sort_values(by = ["UserID", "Timestamp"])
+    ratings_df.sort_values(by = ['UserID', 'Timestamp'])
     
     ratings_df_test = pd.DataFrame(columns = ratings_df.columns)
     
-    for i in range(ratings_df["UserID"].nunique()):
+    for i in range(ratings_df['UserID'].nunique()):
         # Test set is 10 of observations.
-        #n_test = int(0.2 * len(ratings_df[ratings_df["UserID"] == i]))
+        #n_test = int(0.2 * len(ratings_df[ratings_df['UserID'] == i]))
         n_test = 10
         ratings_df_test = ratings_df_test.append(ratings_df[ratings_df
-                                                            ["UserID"] ==
+                                                            ['UserID'] ==
                                                             i].tail(n_test),
                                                 ignore_index = True)
-        ratings_df.drop(ratings_df[ratings_df["UserID"] == i]
+        ratings_df.drop(ratings_df[ratings_df['UserID'] == i]
                         .tail(n_test).index,
                         inplace = True)
     
@@ -166,6 +167,8 @@ def updateDataFrame(new_user, R_df, movies_df):
     new_df = new_df[['MovieID', 'UserID', 'Genres', 'Title', 'Rating']]
     
     # Then, append the new dataframe to the former R_df.
-    R_df = R_df.append(new_df, ignore_index = True).sort_values(by = ['MovieID', 'UserID'])
+    R_df = R_df.append(new_df,
+                       ignore_index = True).sort_values(by = ['MovieID',
+                                                              'UserID'])
     
     return R_df
