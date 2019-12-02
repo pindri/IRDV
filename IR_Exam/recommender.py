@@ -93,13 +93,13 @@ class recommenderSystem():
         dfs = [predictions_df, self.movies_df, avg_rat]
         
         recom_df = reduce(lambda left, right: 
-                          pd.merge(left, right, on = "MovieID"), dfs)
+                          pd.merge(left, right, on = 'MovieID'), dfs)
         
         recom_df.drop(['UserID'], inplace = True, axis = 1)
         recom_df.round({'Rating': 1})
         recom_df.rename(columns = {'Rating':'AVG_Rating'}, inplace = True)
 
-        return recom_df.sort_values(by = "Prediction", ascending = False)
+        return recom_df.sort_values(by = 'Prediction', ascending = False)
     
     
     def mostPopular(self):
