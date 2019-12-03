@@ -15,8 +15,3 @@ The code is organised as follows:
 * `utilities.py` contains utility functions to measure the execution of functions and to save/load a recommender system to file.
 
 Additionally, the `source/` code contains a pre-trained system, stored in `rec.npz`.
-
-
-## Todo
- - [ ] maybe comment the code in a more detailed way;
- - [ ] add more details on the pre-trained system;

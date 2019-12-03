@@ -13,6 +13,7 @@ def predict(X, Y):
     Computes the dot product between X and Y.T, producing a prediction of
     the ratings.
     """
+    
     return np.dot(X, Y.T)
 
 
@@ -20,6 +21,7 @@ def MAE(predicted_ratings, R, w0 = 1):
     """
     By default, the weight of the error on the unobserved items is one.
     """
+    
     obs_idx = np.where(R > 0)
     n_obs = np.count_nonzero(R)
     nobs_idx = np.where(R == 0)
@@ -39,6 +41,7 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
     constraints.
     If desired, `nnls` can be used to compute a non-negative solution.
     """
+    
     M = np.shape(X)[0]
     K = np.shape(X)[1]
     N = np.shape(Y)[0]
@@ -64,10 +67,10 @@ def singlePassWALS(R, X, Y, C, reg_lambda):
         
 def WALS(R_train, R_test, X, Y, C, reg_lambda, n_iter):
     """
-    Performs `n_iter` passes of the WALS algorithm, printing test and
-    training errors.
+    Performs `n_iter` passes of the WALS algorithm.
     It returns two lists, one for training and one for test errors.
     """
+    
     print("Performing WALS algoritm...")
     
     train_error = []
@@ -95,6 +98,7 @@ def newUserSinglePassWALS(new_user, R, C, X, Y, reg_lambda):
     constraints.
     If desired, `nnls` can be used to compute a non-negative solution.
     """
+    
     M = np.shape(X)[0]
     K = np.shape(X)[1]    
     

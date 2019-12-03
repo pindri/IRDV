@@ -10,10 +10,10 @@ import factorisation # WALS factorisation.
 
 class recommenderSystem():
     
-    
     """
     Implements a recommender system. It is constructed from a movies
     dataframe and ratings dataframes (for both training and test).
+    The number of latent factors 'k' can be specified.
     
     It includes methods to perform WALS factorisation and provide
     recommendations.
@@ -29,7 +29,7 @@ class recommenderSystem():
     recommendations for them.
     """
     
-    def __init__(self, movies_df, ratings_df, ratings_df_test):
+    def __init__(self, movies_df, ratings_df, ratings_df_test, k = 100):
         self.movies_df = movies_df
         self.ratings_df = ratings_df
         self.ratings_df_test = ratings_df_test
@@ -40,7 +40,7 @@ class recommenderSystem():
         
         self.C = data_preparation.buildWeightMatrix(self.R)
         
-        self.K = 100
+        self.K = k
         self.X = np.random.rand(np.shape(self.R)[0], self.K)
         self.Y = np.random.rand(np.shape(self.R)[1], self.K)
         

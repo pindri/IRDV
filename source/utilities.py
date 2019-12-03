@@ -7,6 +7,7 @@ class codeTimer:
     """
     Context manager, measures and prints the execution time of a function.
     """
+    
     def __init__(self, name=None):
         self.name = "Executed '"  + name + "'. " if name else ""
 
@@ -23,6 +24,7 @@ def saveRecSys(rec, filename):
     """
     Saves the user and item matrices of a recommender system to file.
     """
+    
     np.savez(filename, X = rec.X, Y = rec.Y)
         
         
@@ -30,6 +32,7 @@ def loadRecSys(rec, filename):
     """
     Loads the user and item matrices of a recommender system from file.
     """
+    
     data = np.load(filename)
     rec.X = data['X']
     rec.Y = data['Y']

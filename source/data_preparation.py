@@ -147,6 +147,7 @@ def updateMatrices(new_user, R, C, X):
     Updates the ratings, weight and user-embedding matrices when a new user
     is added into the dataset.
     """
+    
     R = np.vstack((R, new_user))
     C = buildWeightMatrix(R, alpha = 10)
     X = np.vstack((X, np.random.rand(np.shape(X)[1])))
@@ -158,6 +159,7 @@ def updateDataFrame(new_user, R_df, movies_df):
     """
     Updates the ratings dataframes when a new user is added into the dataset.
     """
+    
     # First, create a new dataframe for the new_user.
     new_df = pd.DataFrame(new_user, columns=['Rating'])
     new_df['MovieID'] = range(0, len(new_user))
