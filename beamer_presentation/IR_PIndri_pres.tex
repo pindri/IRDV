@@ -292,7 +292,7 @@ array([[4. , 0. , 4. , ..., 0. , 0. , 0. ],
      
     \vspace{1em}
 
-    For $n$ users and $k$ latent factors, the computation is $O(k^3 + k^2n)$ for each of the $m$ items.
+    For $n$ users and $k$ latent factors, the computation is $O(k^3 + k^2n)$ for each of the $m$ users.
 
     \vspace{1em}
 
@@ -748,7 +748,7 @@ Too few movies! Most poular movies will be suggested.
 
     \begin{lstlisting}[basicstyle=\footnotesize]
 # Computing sim(y_i, y_j).
-if len(y_i) == 0 or len(y_j):
+if len(y_i) == 0 or len(y_j) == 0:
     return -1
     \end{lstlisting}
 
@@ -777,7 +777,7 @@ if len(y_i) == 0 or len(y_j):
     \vspace{2em}
 
     \begin{block}{Conclusions}
-      Conclusions.
+      Despite the poor quantitative evaluations, the system seems to perform decently both with recommendation of new movies and of similar movies.
     \end{block}
 
   \end{frame}
