@@ -1,0 +1,182 @@
+% Libraries.
+\usepackage{tikz}
+\usepackage{lmodern}
+\usetikzlibrary{calc}
+\usepackage[none]{hyphenat}
+
+
+% Things I do not know but necessary.
+\newif\ifbeamer@pixelitem
+\beamer@pixelitemtrue
+\DeclareOptionBeamer{nopixelitem}{\beamer@pixelitemfalse}
+\ProcessOptionsBeamer
+
+
+% Colour definitions.
+\definecolor{ThemeRed}{RGB}{100,37,52}
+\definecolor{ThemeBlack}{RGB}{43,40,40}
+\definecolor{ThemeBlue}{RGB}{31,119,180}
+\definecolor{ThemeWhite}{RGB}{253,253,253}
+\definecolor{ThemeGrey}{RGB}{107,110,108}
+
+
+% Some fancy fonts to be used with pdflatex.
+%\usepackage{sourceserifpro}
+%\usepackage{sourcesanspro}
+%\usepackage{sourcecodepro}
+
+
+% Set colours.
+%\everymath{\color{ThemeBlack}}
+%\everydisplay{\color{ThemeRed}}
+\setbeamercolor{enumerate item}{fg=ThemeRed}
+\setbeamercolor{math text}{fg=ThemeBlack}
+\setbeamercolor{math text displayed}{fg=ThemeBlack}
+
+\setbeamercolor{button}{bg=ThemeRed,fg=ThemeWhite}
+\setbeamercolor{alerted text}{fg=ThemeRed}
+\setbeamercolor{section in toc}{fg=ThemeBlack}
+\setbeamercolor{block title}{use=structure,fg=ThemeWhite,bg=ThemeRed}
+\setbeamercolor{block body}{use=structure,fg=ThemeRed,bg=ThemeWhite}
+
+
+% Set fonts.
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\small}
+
+
+% Disable navigation.
+\setbeamertemplate{navigation symbols}{}
+
+% Clear title page and frame title, will be manually drawn.
+\setbeamertemplate{title page}{}
+%\setbeamertemplate{frametitle}{}
+% Adds an upper margin.
+\setbeamertemplate{frametitle}{\vspace{0.9cm}}
+
+% Disable "Figure:" in the captions.
+\setbeamertemplate{caption}{\tiny\insertcaption}
+\setbeamertemplate{caption label separator}{}
+
+
+\ifbeamer@pixelitem
+% Draw itemize bullets, fancy little triangles.
+\setbeamertemplate{itemize item}{
+	\tikz{
+		\draw[fill=ThemeRed,draw=none] (0,0) -- (0,0.25) -- (0.25,0.125) -- cycle;
+	}
+}
+% Subitem, a smaller triangle.
+\setbeamertemplate{itemize subitem}{
+	\tikz{
+		\draw[fill=ThemeRed,draw=none] (0,0) -- (0,0.2) -- (0.2,0.1) -- cycle;
+	}
+}
+\fi
+
+
+% Counters to determine page numbering.
+\newcounter{showSlideNumbers}
+\setcounter{showSlideNumbers}{1}
+\newcounter{showSlideTotal}
+\setcounter{showSlideTotal}{1}
+
+% Set beginning of backup slides, so that numbering stops.
+\newcommand{\backupbegin}{
+   \newcounter{finalframe}
+   \setcounter{finalframe}{\value{framenumber}}
+   \setcounter{showSlideNumbers}{0}
+}
+\newcommand{\backupend}{
+   \setcounter{framenumber}{\value{finalframe}}
+}
+
+
+\newdimen\slidewidth % Auxiliary dimension.
+\newdimen\slideheight % Auxiliary dimension.
+
+\slidewidth=\the\paperwidth
+\slideheight=\the\paperheight
+
+
+% Use tikz to draw everything.
+% Basing things on slide number is not optimal, but wathever.
+\setbeamertemplate{background}{
+
+	\begin{tikzpicture}
+		% Set up the entire slide as the canvas.
+		\useasboundingbox (0,0) rectangle(\the\paperwidth,\the\paperheight);
+
+		% Background.
+		\fill[color=ThemeWhite] (0,0) rectangle(\the\paperwidth,\the\paperheight);
+
+		% Separate the drawing based on if we're the first (title) slide or not.
+		\ifnum\thepage=1\relax
+			% Add a coloured fillling.
+			\fill[color=ThemeRed] (0, 6cm) rectangle(\slidewidth,\slideheight);
+
+			% Draw the actual text.
+			\node[anchor=south, text width=\slidewidth-1cm, inner xsep=0.5cm] at (0.5\slidewidth,6cm) {
+				\color{ThemeWhite}\LARGE\scshape\inserttitle
+			};
+
+			\node[anchor=north, text width=\slidewidth-1cm] at (0.5\slidewidth,5cm) {
+				\color{ThemeBlack}\normalsize\scshape\insertsubtitle
+			};
+
+			\node[anchor=north, text width=\slidewidth-1cm] at (0.5\slidewidth,3.5cm) {
+				\color{ThemeRed}\normalsize\scshape\insertauthor\\\insertdate
+			};
+
+			\node[anchor=north, text width=\slidewidth-1cm] at (0.5\slidewidth,2cm) {
+				\color{ThemeBlack}\footnotesize\scshape\insertinstitute
+			};
+
+		\else
+			% Not the title page.
+			% Title bar.
+			\fill[color=ThemeRed] (0, \slideheight-0.9cm) rectangle(\slidewidth,\slideheight);
+
+			\node[anchor=north,text width=\slidewidth-1cm,inner xsep=0.5cm,inner ysep=0.25cm] at (0.5\slidewidth,\slideheight) {
+        \color{ThemeWhite}\Large \scshape\insertframetitle
+      };
+
+
+			% Section title in the bottom left.
+			\node[anchor=south west] at(0cm,0cm) {
+        \color{ThemeGrey}\scriptsize\vphantom{lp}\insertsection
+      };
+			% If we're showing slide numbers.
+			\ifnum \value{showSlideNumbers}>0\relax%
+				% If slide totals are active.
+				\ifnum \value{showSlideTotal}>0\relax%
+					% Draw both slide number and slide total.
+					\node[anchor=south east] at(\slidewidth,0cm) {
+            \color{ThemeGrey}\scriptsize\insertframenumber/\inserttotalframenumber
+          };
+				\else
+					% Slide totals aren't active, don't draw them.
+					\node[anchor=south east] at(\slidewidth,0cm) {
+            \color{ThemeGrey}\scriptsize\insertframenumber
+          };
+				\fi
+			\fi
+		\fi
+	\end{tikzpicture}
+}
+\makeatother
+
+% Add section titles.
+\AtBeginSection{\frame{\sectionpage}}
+\setbeamertemplate{section page} {
+	\begin{tikzpicture}
+		% Set up the entire slide as the canvas.
+		\useasboundingbox (0,0) rectangle(\slidewidth,\slideheight);
+		\fill[color=ThemeWhite] (-1cm, 2cm) rectangle (\slidewidth, \slideheight+0.1cm);
+		\fill[color=ThemeRed] (-1cm, 0.5\slideheight-1cm) rectangle(\slidewidth, 0.5\slideheight+1cm);
+		\node[text width=\the\paperwidth-1cm,align=center] at (0.4\slidewidth, 0.5\slideheight) {
+			\color{ThemeWhite}\Huge\scshape \insertsection
+		};
+	\end{tikzpicture}
+}
